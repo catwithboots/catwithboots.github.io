@@ -16,20 +16,21 @@ Hekaton is a part of the SQL Engine, so there is no need for installation of add
 
 The whole concept of Hekaton is to eliminate the performance bottlenecks encountered with the traditional disk based tables like locks, latches (a lightweight lock-like mechanism that protects access to read and change in memory structures) and disk I/O. 
 
-Locks and latches
+**Locks and latches**
 
 Hekaton is using an optimistic MVCC (Multi Version Concurrency Control) model, what is already there for some time in Oracle and a bit in SQL Server as of version 2005 with snapshot isolation. Also Hekaton will never modify an existing row, so there is no need for locking. Instead data modification (update) is done by deleting the existing row and inserting a new row. If a row is updated multiple times you will get multiple versions of the row. So the result of a query will depend on the transaction start time and the timestamp in the header of the row.
 So what about latches? Simplified a latch is a lightweight in memory lock that makes sure that the (meta)data pages in memory are not changed by another transaction. With In-Memory OLTP the concept of pages does not exist (it just stored rows in memory, no pages), with this latches don't exist either.
 
-Disk I/O
+**Disk I/O**
 
 This is a part that needs to be explained a little bit. Since the database is in memory you don't have to do any disk I/O, but there is a nuance. All metadata is compiled code  and held in memory (including tables/indexes and natively compiled stored procedures). For the actual data you have two options;
 
-1.	Schema_only are non-durable objects, so basically this is completely in memory and with a crash or restart of SQL Server you will lose the data in these objects (not the objects themselves). 
 
-2.	Then you have schema_and_data objects which are durable. You will keep the data in case of a SQL Server restart. This means the transaction log will be used and that the data will be streamed out sequentially to disk (not a traditional MDF/NDF layout) in order of the transaction log using a background thread to ensure recovery. 
+1. Schema_only are non-durable objects, so basically this is completely in memory and with a crash or restart of SQL Server you will lose the data in these objects (not the objects themselves). 
 
-Requirements and constraints
+2. Then you have schema_and_data objects which are durable. You will keep the data in case of a SQL Server restart. This means the transaction log will be used and that the data will be streamed out sequentially to disk (not a traditional MDF/NDF layout) in order of the transaction log using a background thread to ensure recovery. 
+
+**Requirements and constraints**
 
 Since Hekaton is handling metadata and data in a different way than traditional disk based data there are quite some constraints for using this. A few of the important ones in my opinion are; 
 
@@ -51,7 +52,7 @@ Since Hekaton is handling metadata and data in a different way than traditional 
 
 •	Once an in-memory filegroup is created you cannot drop it from the database.
 
-So, how practical is it then?
+**So, how practical is it then?**
 
 I'll answer this with one of the most annoying answers; it depends.
 
